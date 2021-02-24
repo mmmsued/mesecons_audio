@@ -9,7 +9,7 @@ With this mod you can use audio files in Minetest. You need the mesecons_audio p
 <img src="Screenshot.png">
 
 Verwendung:
-Man benötigt das Privileg »mesecons_audio«, um das Formspec des Blockes mit Rechtsklick öffnen, bearbeiten und speichern zu können.
+Man benötigt das Privileg »mesecons_audio«, um das Formspec des Blockes mit Rechtsklick öffnen, bearbeiten und speichern zu können. Spieler:innen ohne dieses Privileg können den Block nur abspielen.
 
 Hinweise:
 Das Dateiformat der Audiodateien muss .ogg sein (am besten Mono). Der Dateiname sollte dem Schema »ma_dateiname.ogg« folgen, wobei »ma« für »Mesecons Audio« steht. Bei Sonderzeichen im Dateinamen werden diese im Dropdown-Menü des Blocks zwar angezeigt, können aber nicht abgespielt werden.
