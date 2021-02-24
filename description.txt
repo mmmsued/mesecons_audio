@@ -1,0 +1,1 @@
+Der Mod »Mesecons Audio« ermöglicht es, Audiodateien in Minetest einzubinden. Abhängigkeit: mesecons. Man benötigt das Privileg »mesecons_audio«, um das Formspec des Blockes mit Rechtsklick öffnen, bearbeiten und speichern zu können.
