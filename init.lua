@@ -1,7 +1,11 @@
 -- Copyright (C) 2020 Norbert Thien, multimediamobil - Region Süd, Lizenz: Creative Commons BY-SA 4.0
+-- Copyright (C) 2022 Isidor Zeuner, Lizenz: Creative Commons BY-SA 4.0
 -- Kein Rezept, nur im Creative Modus verwendbar oder mit give <playername> mesecons_audio:audio_block
 -- Privileg mesecons_audio erforderlich
 -- Missing: falsche Angaben im Formspec abfangen (keine Dateiendung, keine Zahl) - nicht wirklich nötig
+--
+
+local S = minetest.get_translator("mesecons_audio")
 
 local just_playing = {} -- Tabelle, die die laufenden Töne speichert, um Doppelabspielung zu verhindern
 local not_in_creative_inventory = 0 -- 0 = wird im Creative Mode angezeigt, 1 = wird nicht angezeigt, dann nur mit give erreichbar
@@ -9,7 +13,7 @@ local default_heardistance = "3"
 local default_gain = "1.0"
 local default_loop = "true"
 local default_stop = "true"
-local default_selected_audio = "No audio file selected"
+local default_selected_audio = S("No audio file selected")
 
 local mesecons_audio_path = minetest.get_modpath(minetest.get_current_modname()) .."/sounds" -- Audiodateien im Ordner sounds finden
 
@@ -64,7 +68,7 @@ local function update_audio_list(caller_name)
 			) then
 				minetest.chat_send_player(
 					caller_name,
-					"audio " .. file .. " could not be sent"
+					S("audio @1 could not be sent", file)
 				)
 			end
 		end
@@ -77,7 +81,7 @@ local function initialize_data(meta) -- formspec generieren
 	local owner = meta:get_string("owner")
 
 	if not minetest.check_player_privs(owner,{mesecons_audio = true}) then --bei fehlendem Recht Formspec gar nicht erst öffnen
-		minetest.chat_send_player(owner, "Dir fehlt das Privileg (mesecons_audio), um Audio-Dateien einzubinden.")
+		minetest.chat_send_player(owner, S("You lack the privilege (mesecons_audio) for integrating audio files."))
 		return
 	end
 
@@ -100,23 +104,23 @@ local function initialize_data(meta) -- formspec generieren
 		"size[6.0,7.0;]" ..
 		"bgcolor[#0000;fullscreen]" ..
 		"dropdown[0.7,0.5;4.7,1.0;choice;" .. audio_file .. ";" .. audio_index .. "]" ..
-		"field[1.0,2.1;4.5,1.0;heardistance;Hearing distance (Range 1 -32);" .. heardistance .."]" ..
-		"field[1.0,3.5;4.5,1.0;gain;Volume (Range 0.0 - 1.0);" .. gain .. "]" ..
+		"field[1.0,2.1;4.5,1.0;heardistance;" .. minetest.formspec_escape(S("Hearing distance (Range 1 -32)")) .. ";" .. heardistance .."]" ..
+		"field[1.0,3.5;4.5,1.0;gain;" .. minetest.formspec_escape(S("Volume (Range 0.0 - 1.0)")) .. ";" .. gain .. "]" ..
 					-- mehr Auswahlmöglichkeiten geplant; Abfrage der Checkbox funktioniert aber nicht.
 					-- "checkbox[0.0,3.7;restart;next punch restarts sound (otherwise stops);true]" ..
-		"checkbox[1.0,4.5;loop;Loop sound;" .. loop .. "]" ..
-		"checkbox[1.0,5.5;stop;Stop sound when switched off;" .. stop .. "]" ..
-		"button_exit[2.2,6.3;1.5,1.0;save;Save]")
+		"checkbox[1.0,4.5;loop;" .. minetest.formspec_escape(S("Loop sound")) .. ";" .. loop .. "]" ..
+		"checkbox[1.0,5.5;stop;" .. minetest.formspec_escape(S("Stop sound when switched off")) .. ";" .. stop .. "]" ..
+		"button_exit[2.2,6.3;1.5,1.0;save;" .. minetest.formspec_escape(S("Save")) .. "]")
 
 	if owner == "" then
-		owner = "no owner yet"
+		owner = S("no owner yet")
 	else
-		owner = "owned by " .. owner
+		owner = S("owned by @1", owner)
 	end
 
-	meta:set_string("infotext", "Audio Block\n" ..
+	meta:set_string("infotext", S("Audio Block") .. "\n" ..
 		"(" .. owner .. ")\n" ..
-		"Audio: " .. selected_audio)
+		S("Audio") .. ": " .. selected_audio)
 end
 
 
@@ -266,7 +270,7 @@ minetest.register_privilege( -- formspec des Soundblocks ist nur mit entsprechen
     'mesecons_audio',
     {
         description = (
-            "Gives player privilege for use off mesecons_audio"
+            S("Gives player privilege for use off mesecons_audio")
         ),
         give_to_singleplayer = true,
         give_to_admin = true,
@@ -277,7 +281,7 @@ minetest.register_chatcommand(
 	"sync_mesecons_audio",
 	{   
 		params = "",
-		description = "sync newly available audio files to clients",
+		description = S("sync newly available audio files to clients"),
 		privs = {
 			server = true
 		},

@@ -1,0 +1,18 @@
+# textdomain: mesecons_audio
+
+### init.lua ###
+
+No audio file selected=
+audio @1 could not be sent=
+You lack the privilege (mesecons_audio) for integrating audio files.=
+Hearing distance (Range 1 -32)=
+Volume (Range 0.0 - 1.0)=
+Loop sound=
+Stop sound when switched off=
+Save=
+no owner yet=
+owned by @1=
+Audio Block=
+Audio=
+Gives player privilege for use off mesecons_audio=
+sync newly available audio files to clients=
