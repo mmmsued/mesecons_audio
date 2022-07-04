@@ -8,6 +8,7 @@ local not_in_creative_inventory = 0 -- 0 = wird im Creative Mode angezeigt, 1 = 
 local default_heardistance = "3"
 local default_gain = "1.0"
 local default_loop = "true"
+local default_stop = "true"
 local default_selected_audio = "No audio file selected"
 
 local mesecons_audio_path = minetest.get_modpath(minetest.get_current_modname()) .."/sounds" -- Audiodateien im Ordner sounds finden
@@ -92,10 +93,11 @@ local function initialize_data(meta) -- formspec generieren
 	local heardistance = minetest.formspec_escape(meta:get_string("heardistance")) or default_heardistance
 	local gain = minetest.formspec_escape(meta:get_string("gain")) or default_gain
 	local loop = minetest.formspec_escape(meta:get_string("loop")) or default_loop
+	local stop = minetest.formspec_escape(meta:get_string("stop")) or default_stop
 					-- local restart = minetest.formspec_escape(meta:get_string("restart")) -- für mehr Auswahlmöglichkeiten geplant
 
 	meta:set_string("formspec",
-		"size[6.0,6.0;]" ..
+		"size[6.0,7.0;]" ..
 		"bgcolor[#0000;fullscreen]" ..
 		"dropdown[0.7,0.5;4.7,1.0;choice;" .. audio_file .. ";" .. audio_index .. "]" ..
 		"field[1.0,2.1;4.5,1.0;heardistance;Hearing distance (Range 1 -32);" .. heardistance .."]" ..
@@ -103,7 +105,8 @@ local function initialize_data(meta) -- formspec generieren
 					-- mehr Auswahlmöglichkeiten geplant; Abfrage der Checkbox funktioniert aber nicht.
 					-- "checkbox[0.0,3.7;restart;next punch restarts sound (otherwise stops);true]" ..
 		"checkbox[1.0,4.5;loop;Loop sound;" .. loop .. "]" ..
-		"button_exit[2.2,5.3;1.5,1.0;save;Save]")
+		"checkbox[1.0,5.5;stop;Stop sound when switched off;" .. stop .. "]" ..
+		"button_exit[2.2,6.3;1.5,1.0;save;Save]")
 
 	if owner == "" then
 		owner = "no owner yet"
@@ -123,6 +126,7 @@ local function construct(pos)
 	meta:set_string("heardistance", default_heardistance)
 	meta:set_string("gain", default_gain)
 	meta:set_string("loop", default_loop)
+	meta:set_string("stop", default_stop)
 	meta:set_string("audiofile", "")
 	meta:set_string("choice", default_selected_audio)
 	meta:set_string("restart", "true")
@@ -151,6 +155,9 @@ local function receive_fields(pos, formname, fields, sender)
 	if fields.loop then
 		meta:set_string("unsaved_loop", fields.loop)
 	end
+	if fields.stop then
+		meta:set_string("unsaved_stop", fields.stop)
+	end
 	if not fields.save then
 		return
 	end
@@ -164,10 +171,36 @@ local function receive_fields(pos, formname, fields, sender)
 		meta:set_string("loop", meta:get_string("unsaved_loop"))
 		meta:set_string("unsaved_loop", "")
 	end
+	if meta:get("unsaved_stop") then
+		meta:set_string("stop", meta:get_string("unsaved_stop"))
+		meta:set_string("unsaved_stop", "")
+	end
 
 	initialize_data(meta)
 end
 
+
+local function commandblock_action_off(pos, node)
+	if node.name ~= "mesecons_audio:audio_block" then
+		return
+	end
+
+	local meta = minetest.get_meta(pos)
+	local stop = "true" == (meta:get_string("stop") or default_stop)
+	local pos_object = minetest.pos_to_string(pos) -- Position des aktuell angeklickten Mese-Soundblocks ermitteln
+
+	if not just_playing[pos_object] then -- falls der Mese-Soundblock noch nie (per Mese-Schalter) gestartet wurde, Soundblock in die Tabelle just_playing schreiben
+		just_playing[pos_object] = {}
+	end
+
+	if not stop then -- Sound soll durchlaufen
+		return
+	end
+
+	if just_playing[pos_object][1] then -- Sound wird aktuell abgespielt
+		minetest.sound_stop(just_playing[pos_object][1]) -- den gerade spielenden Ton abbrechen
+	end
+end
 
 local function commandblock_action_on(pos, node)
 	if node.name ~= "mesecons_audio:audio_block" then
@@ -217,7 +250,8 @@ minetest.register_node("mesecons_audio:audio_block", {
 	groups = {snappy = 2, choppy = 2, oddly_breakable_by_hand = 2, not_in_creative_inventory = not_in_creative_inventory},
 
 	mesecons = {effector = {
-		action_on = commandblock_action_on
+		action_on = commandblock_action_on,
+		action_off = commandblock_action_off,
 	}},
 
 	on_construct = construct,
