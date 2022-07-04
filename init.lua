@@ -144,13 +144,15 @@ local function after_place(pos, placer)
 	end
 end
 
+local can_interact_with_node = default.can_interact_with_node or function()
+	return false
+end
 
 local function receive_fields(pos, formname, fields, sender)
-	local meta = minetest.get_meta(pos)
-	local owner = meta:get_string("owner")
-	if owner ~= "" and sender:get_player_name() ~= owner then
+	if not can_interact_with_node(sender, pos) then
 		return
 	end
+	local meta = minetest.get_meta(pos)
 
 	if fields.loop then
 		meta:set_string("unsaved_loop", fields.loop)
