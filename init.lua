@@ -7,6 +7,7 @@ local just_playing = {} -- Tabelle, die die laufenden Töne speichert, um Doppel
 local not_in_creative_inventory = 0 -- 0 = wird im Creative Mode angezeigt, 1 = wird nicht angezeigt, dann nur mit give erreichbar
 local default_heardistance = "3"
 local default_gain = "1.0"
+local default_loop = "true"
 local default_selected_audio = "No audio file selected"
 
 local mesecons_audio_path = minetest.get_modpath(minetest.get_current_modname()) .."/sounds" -- Audiodateien im Ordner sounds finden
@@ -90,17 +91,19 @@ local function initialize_data(meta) -- formspec generieren
 
 	local heardistance = minetest.formspec_escape(meta:get_string("heardistance")) or default_heardistance
 	local gain = minetest.formspec_escape(meta:get_string("gain")) or default_gain
+	local loop = minetest.formspec_escape(meta:get_string("loop")) or default_loop
 					-- local restart = minetest.formspec_escape(meta:get_string("restart")) -- für mehr Auswahlmöglichkeiten geplant
 
 	meta:set_string("formspec",
-		"size[6.0,5.0;]" ..
+		"size[6.0,6.0;]" ..
 		"bgcolor[#0000;fullscreen]" ..
 		"dropdown[0.7,0.5;4.7,1.0;choice;" .. audio_file .. ";" .. audio_index .. "]" ..
 		"field[1.0,2.1;4.5,1.0;heardistance;Hearing distance (Range 1 -32);" .. heardistance .."]" ..
 		"field[1.0,3.5;4.5,1.0;gain;Volume (Range 0.0 - 1.0);" .. gain .. "]" ..
 					-- mehr Auswahlmöglichkeiten geplant; Abfrage der Checkbox funktioniert aber nicht.
 					-- "checkbox[0.0,3.7;restart;next punch restarts sound (otherwise stops);true]" ..
-		"button_exit[2.2,4.3;1.5,1.0;save;Save]")
+		"checkbox[1.0,4.5;loop;Loop sound;" .. loop .. "]" ..
+		"button_exit[2.2,5.3;1.5,1.0;save;Save]")
 
 	if owner == "" then
 		owner = "no owner yet"
@@ -119,6 +122,7 @@ local function construct(pos)
 
 	meta:set_string("heardistance", default_heardistance)
 	meta:set_string("gain", default_gain)
+	meta:set_string("loop", default_loop)
 	meta:set_string("audiofile", "")
 	meta:set_string("choice", default_selected_audio)
 	meta:set_string("restart", "true")
@@ -138,13 +142,16 @@ end
 
 
 local function receive_fields(pos, formname, fields, sender)
-	if not fields.save then
-		return
-	end
-
 	local meta = minetest.get_meta(pos)
 	local owner = meta:get_string("owner")
 	if owner ~= "" and sender:get_player_name() ~= owner then
+		return
+	end
+
+	if fields.loop then
+		meta:set_string("unsaved_loop", fields.loop)
+	end
+	if not fields.save then
 		return
 	end
 
@@ -153,6 +160,10 @@ local function receive_fields(pos, formname, fields, sender)
 	meta:set_string("audiofile", fields.audiofile)
 	meta:set_string("restart", fields.restart)
 	meta:set_string("choice",fields.choice)
+	if meta:get("unsaved_loop") then
+		meta:set_string("loop", meta:get_string("unsaved_loop"))
+		meta:set_string("unsaved_loop", "")
+	end
 
 	initialize_data(meta)
 end
@@ -167,6 +178,7 @@ local function commandblock_action_on(pos, node)
 	local msg = meta:get_string("choice") or default_selected_audio
 	local heardistance = tonumber(meta:get_string("heardistance")) or default_heardistance
 	local gain = tonumber(meta:get_string("gain")) or default_gain
+	local loop = "true" == (meta:get_string("loop") or default_loop)
 	local pos_object = minetest.pos_to_string(pos) -- Position des aktuell angeklickten Mese-Soundblocks ermitteln
 	local restart = meta:get_string("restart")
 
@@ -180,6 +192,7 @@ local function commandblock_action_on(pos, node)
 				pos = pos,
 				max_hear_distance = heardistance,
 				gain = gain,
+				loop = loop,
 			})
 	else
 		minetest.sound_stop(just_playing[pos_object][1]) -- den gerade spielenden Ton abbrechen
@@ -191,6 +204,7 @@ local function commandblock_action_on(pos, node)
 							pos = pos,
 							max_hear_distance = heardistance,
 							gain = gain,
+							loop = loop,
 						})
 	end
 end
