@@ -10,14 +10,66 @@ local default_gain = "1.0"
 local default_selected_audio = "No audio file selected"
 
 local mesecons_audio_path = minetest.get_modpath(minetest.get_current_modname()) .."/sounds" -- Audiodateien im Ordner sounds finden
-local mesecons_audio_dir_list = minetest.get_dir_list(mesecons_audio_path)
-local audio_file = default_selected_audio
-local audio_index_list = {default_selected_audio}
-for i=1, #mesecons_audio_dir_list do -- Dateinamen aus dem Ordner sounds ermitteln
-	audio_file = audio_file .. "," .. string.sub(mesecons_audio_dir_list[i],1,string.find (mesecons_audio_dir_list[i], "%.")-1)
-	audio_index_list[i+1] = string.sub(mesecons_audio_dir_list[i],1,string.find (mesecons_audio_dir_list[i], "%.")-1)
+
+local function get_audio_list()
+	-- Dateinamen aus dem Ordner sounds ermitteln
+	local mesecons_audio_dir_list = minetest.get_dir_list(
+		mesecons_audio_path
+	)
+	local new_audio_file = default_selected_audio
+	local new_audio_index_list = {default_selected_audio}
+	local new_location_list = {0}
+	for i=1, #mesecons_audio_dir_list do
+		new_audio_file = new_audio_file .. "," .. string.sub(
+			mesecons_audio_dir_list[i],
+			1,
+			string.find (mesecons_audio_dir_list[i], "%.")-1
+		)
+		new_audio_index_list[i+1] = string.sub(
+			mesecons_audio_dir_list[i],
+			1,
+			string.find (mesecons_audio_dir_list[i], "%.")-1
+		)
+		new_location_list[i+1] = mesecons_audio_path .. "/" .. mesecons_audio_dir_list[i]
+	end
+	return new_audio_file, new_audio_index_list, new_location_list
 end
 
+local audio_file, audio_index_list = get_audio_list()
+
+local function update_audio_list(caller_name)
+	local new_audio_file, new_audio_index_list, locations = get_audio_list()
+	local known = {}
+	for i, file in pairs(audio_index_list) do
+		known[file] = true
+	end
+	for i, file in pairs(new_audio_index_list) do
+		if not known[file] then
+			local added = locations[i]
+			if minetest.features.dynamic_add_media_table then
+				added = {
+					filepath = added
+				}
+			end
+			if not minetest.dynamic_add_media(
+				added,
+				function ()
+--					minetest.chat_send_player(
+--						caller_name,
+--						"audio " .. file .. " sent"
+--					)
+				end
+			) then
+				minetest.chat_send_player(
+					caller_name,
+					"audio " .. file .. " could not be sent"
+				)
+			end
+		end
+	end
+	audio_file = new_audio_file
+	audio_index_list = new_audio_index_list
+end
 
 local function initialize_data(meta) -- formspec generieren
 	local owner = meta:get_string("owner")
@@ -169,4 +221,16 @@ minetest.register_privilege( -- formspec des Soundblocks ist nur mit entsprechen
         give_to_singleplayer = true,
         give_to_admin = true,
     }
+)
+
+minetest.register_chatcommand(
+	"sync_mesecons_audio",
+	{   
+		params = "",
+		description = "sync newly available audio files to clients",
+		privs = {
+			server = true
+		},
+		func = update_audio_list
+	}
 )
