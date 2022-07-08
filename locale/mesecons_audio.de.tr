@@ -1,0 +1,18 @@
+# textdomain: mesecons_audio
+
+### init.lua ###
+
+No audio file selected=Keine Klangdatei ausgewählt
+audio @1 could not be sent=Klang @1 konnte nicht geschickt werden
+You lack the privilege (mesecons_audio) for integrating audio files.=Dir fehlt das Privileg (mesecons_audio), um Audio-Dateien einzubinden.
+Hearing distance (Range 1 -32)=Hörreichweite (Bereich 1 -32)
+Volume (Range 0.0 - 1.0)=Lautstärke (Bereich 0.0 - 1.0)
+Loop sound=Klang wiederholen
+Stop sound when switched off=Klang beenden beim Ausschalten
+Save=Speichern
+no owner yet=noch kein Eigentümer
+owned by @1=gehört @1
+Audio Block=Klangblock
+Audio=Klang
+Gives player privilege for use off mesecons_audio=Gibt Spielern das Privileg, mesecons_audio zu benutzen
+sync newly available audio files to clients=neu verfügbare Klänge auf Clients übertragen
