@@ -21,4 +21,5 @@ Hat man einen Audioblock gesetzt und fügt dem Sounds-Ordner nachträglich Töne
 Läuft der Sound bereits, führt erneutes Anklicken des Mescon-Schalter zum kompletten Neustart des Tones.
 
 Lizenz:
-Copyright (C) 2020 Norbert Thien, multimediamobil - Region Süd, Lizenz: Creative Commons BY-SA 4.0
+Copyright (C) 2022 Norbert Thien, multimediamobil - Region Süd, Lizenz: Creative Commons BY-SA 4.0
+Copyright (C) 2022 Isidor Zeuner, Lizenz: Creative Commons BY-SA 4.0
