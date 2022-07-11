@@ -3,7 +3,7 @@
 -- Kein Rezept, nur im Creative Modus verwendbar oder mit give <playername> mesecons_audio:audio_block
 -- Privileg mesecons_audio erforderlich
 -- Missing: falsche Angaben im Formspec abfangen (keine Dateiendung, keine Zahl) - nicht wirklich nötig
---
+
 
 local S = minetest.get_translator("mesecons_audio")
 
@@ -11,20 +11,22 @@ local just_playing = {} -- Tabelle, die die laufenden Töne speichert, um Doppel
 local not_in_creative_inventory = 0 -- 0 = wird im Creative Mode angezeigt, 1 = wird nicht angezeigt, dann nur mit give erreichbar
 local default_heardistance = "3"
 local default_gain = "1.0"
-local default_loop = "true"
-local default_stop = "true"
+local default_loop = "false"
+local default_stop = "false"
 local default_selected_audio = S("No audio file selected")
 
 local mesecons_audio_path = minetest.get_modpath(minetest.get_current_modname()) .."/sounds" -- Audiodateien im Ordner sounds finden
 
+
+-- Funktion zum Ermitteln der Dateinamen aus dem Ordner sounds
 local function get_audio_list()
-	-- Dateinamen aus dem Ordner sounds ermitteln
-	local mesecons_audio_dir_list = minetest.get_dir_list(
-		mesecons_audio_path
-	)
+
+	local mesecons_audio_dir_list = minetest.get_dir_list(mesecons_audio_path)
+
 	local new_audio_file = default_selected_audio
 	local new_audio_index_list = {default_selected_audio}
 	local new_location_list = {0}
+
 	for i=1, #mesecons_audio_dir_list do
 		new_audio_file = new_audio_file .. "," .. string.sub(
 			mesecons_audio_dir_list[i],
@@ -41,14 +43,21 @@ local function get_audio_list()
 	return new_audio_file, new_audio_index_list, new_location_list
 end
 
+
+-- Funktionsaufruf zum Ermitteln der Dateinamen aus dem Ordner sounds
 local audio_file, audio_index_list = get_audio_list()
 
+
+-- Funktion, die nach eventuell neuen Audio-Dateien sucht
 local function update_audio_list(caller_name)
+
 	local new_audio_file, new_audio_index_list, locations = get_audio_list()
 	local known = {}
+
 	for i, file in pairs(audio_index_list) do
 		known[file] = true
 	end
+	
 	for i, file in pairs(new_audio_index_list) do
 		if not known[file] then
 			local added = locations[i]
@@ -66,18 +75,22 @@ local function update_audio_list(caller_name)
 --					)
 				end
 			) then
-				minetest.chat_send_player(
-					caller_name,
-					S("audio @1 could not be sent", file)
-				)
+--					minetest.chat_send_player(
+--						caller_name,
+--						S("audio @1 could not be sent", file)
+--					)
 			end
 		end
 	end
+
 	audio_file = new_audio_file
 	audio_index_list = new_audio_index_list
 end
 
-local function initialize_data(meta) -- formspec generieren
+
+-- Funktion, die formspec generiert und gefundene Audiodateien passend aufbereitet
+local function initialize_data(meta) 
+
 	local owner = meta:get_string("owner")
 
 	if not minetest.check_player_privs(owner,{mesecons_audio = true}) then --bei fehlendem Recht Formspec gar nicht erst öffnen
@@ -85,8 +98,9 @@ local function initialize_data(meta) -- formspec generieren
 		return
 	end
 
-	local selected_audio = minetest.formspec_escape(meta:get_string("choice"))
+	update_audio_list(owner) -- Funktionsaufruf, um eventuell neue Audio-Dateien zu finden
 
+	local selected_audio = minetest.formspec_escape(meta:get_string("choice"))
 	local audio_index = "1"
 	for i=1, #audio_index_list do -- Index für formspec Dropdown-Element
 		if audio_index_list[i] == selected_audio then
@@ -98,13 +112,13 @@ local function initialize_data(meta) -- formspec generieren
 	local gain = minetest.formspec_escape(meta:get_string("gain")) or default_gain
 	local loop = minetest.formspec_escape(meta:get_string("loop")) or default_loop
 	local stop = minetest.formspec_escape(meta:get_string("stop")) or default_stop
-					-- local restart = minetest.formspec_escape(meta:get_string("restart")) -- für mehr Auswahlmöglichkeiten geplant
+			-- local restart = minetest.formspec_escape(meta:get_string("restart")) -- für mehr Auswahlmöglichkeiten geplant
 
 	meta:set_string("formspec",
 		"size[6.0,7.0;]" ..
 		"bgcolor[#0000;fullscreen]" ..
 		"dropdown[0.7,0.5;4.7,1.0;choice;" .. audio_file .. ";" .. audio_index .. "]" ..
-		"field[1.0,2.1;4.5,1.0;heardistance;" .. minetest.formspec_escape(S("Hearing distance (Range 1 -32)")) .. ";" .. heardistance .."]" ..
+		"field[1.0,2.1;4.5,1.0;heardistance;" .. minetest.formspec_escape(S("Hearing distance (Range 1 - 32)")) .. ";" .. heardistance .."]" ..
 		"field[1.0,3.5;4.5,1.0;gain;" .. minetest.formspec_escape(S("Volume (Range 0.0 - 1.0)")) .. ";" .. gain .. "]" ..
 					-- mehr Auswahlmöglichkeiten geplant; Abfrage der Checkbox funktioniert aber nicht.
 					-- "checkbox[0.0,3.7;restart;next punch restarts sound (otherwise stops);true]" ..
@@ -120,10 +134,11 @@ local function initialize_data(meta) -- formspec generieren
 
 	meta:set_string("infotext", S("Audio Block") .. "\n" ..
 		"(" .. owner .. ")\n" ..
-		S("Audio") .. ": " .. selected_audio)
+		S("Audio") .. ": " .. selected_audio)	
 end
 
 
+-- Funktion, die die meta-Daten vorbereitet und mit Standardwerten initialisiert
 local function construct(pos)
 	local meta = minetest.get_meta(pos)
 
@@ -134,28 +149,42 @@ local function construct(pos)
 	meta:set_string("audiofile", "")
 	meta:set_string("choice", default_selected_audio)
 	meta:set_string("restart", "true")
-	meta:set_string("owner", "")
-
-	initialize_data(meta)
+    meta:set_string("owner", "")
 end
 
 
+-- Funktion, die den owner in meta-Daten schreibt und die Funktion zum Generieren der formspec und Audio-Liste aufruft
 local function after_place(pos, placer)
 	if placer then
 		local meta = minetest.get_meta(pos)
 		meta:set_string("owner", placer:get_player_name())
+		
 		initialize_data(meta)
 	end
 end
 
+
+-- Funktion, die bei jedem Öffnen der formspec u.a. das Suchen nach neuen Audio-Dateien anstößt
+local function right_click(pos, node, clicker, itemstack, pointed_thing)
+	if clicker then
+		local meta = minetest.get_meta(pos)
+		initialize_data(meta)
+	end
+end
+
+
+-- Zuggriffsrechte feststellen
 local can_interact_with_node = default.can_interact_with_node or function()
 	return false
 end
 
+
+-- Funktion, die gewählte Aktionen im formspec auswertet
 local function receive_fields(pos, formname, fields, sender)
 	if not can_interact_with_node(sender, pos) then
 		return
 	end
+
 	local meta = minetest.get_meta(pos)
 
 	if fields.loop then
@@ -182,10 +211,11 @@ local function receive_fields(pos, formname, fields, sender)
 		meta:set_string("unsaved_stop", "")
 	end
 
-	initialize_data(meta)
+	initialize_data(meta)	
 end
 
 
+-- Funktion für Zugriff auf Mesecons (Schalte aus)
 local function commandblock_action_off(pos, node)
 	if node.name ~= "mesecons_audio:audio_block" then
 		return
@@ -208,6 +238,8 @@ local function commandblock_action_off(pos, node)
 	end
 end
 
+
+-- Funktion für Zugriff auf Mesecons (Schalte an)
 local function commandblock_action_on(pos, node)
 	if node.name ~= "mesecons_audio:audio_block" then
 		return
@@ -249,24 +281,25 @@ local function commandblock_action_on(pos, node)
 end
 
 
+-- Node-Registrierung
 minetest.register_node("mesecons_audio:audio_block", {
 	description = "mesecons_audio",
 	tiles = {"mesecons_audio_top.png","mesecons_audio_side.png"},
 	is_ground_content = false,
 	groups = {snappy = 2, choppy = 2, oddly_breakable_by_hand = 2, not_in_creative_inventory = not_in_creative_inventory},
-
 	mesecons = {effector = {
 		action_on = commandblock_action_on,
 		action_off = commandblock_action_off,
 	}},
-
 	on_construct = construct,
 	after_place_node = after_place,
+	on_rightclick = right_click,
 	on_receive_fields = receive_fields,
 })
 
 
-minetest.register_privilege( -- formspec des Soundblocks ist nur mit entsprechendem privilege aufrufbar
+-- formspec des Soundblocks ist nur mit entsprechendem privilege aufrufbar
+minetest.register_privilege(
     'mesecons_audio',
     {
         description = (
@@ -277,6 +310,8 @@ minetest.register_privilege( -- formspec des Soundblocks ist nur mit entsprechen
     }
 )
 
+
+-- chatcommand zum Verteilen neuer Audiodateien
 minetest.register_chatcommand(
 	"sync_mesecons_audio",
 	{   
