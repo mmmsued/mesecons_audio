@@ -16,7 +16,7 @@ Das Dateiformat der Audiodateien muss .ogg sein (am besten Mono). Der Dateiname 
 
 Mit »Hearing Distance« stellt man ein, wie dicht ein:e Spieler:in vor dem Block stehen muss, damit der Ton beim Anklicken gehört werden kann. Auch alle anderen Spieler:innen in »Hearing Distance« hören den Ton.
 
-Hat man einen Audioblock gesetzt und fügt dem Sounds-Ordner nachträglich Töne hinzu, werden diese ab Minetest-Version 5.5 beim erneuten Öffnen der Formspec automatisch angezeigt. Bis Vesion 5.4.2 muss ansonsten der gesamte Block neu gesetzt werden.
+Hat man einen Audioblock gesetzt und fügt dem Sounds-Ordner nachträglich Töne hinzu, werden diese ab Minetest-Version 5.5 beim erneuten Öffnen der Formspec automatisch angezeigt. Bis Vesion 5.4.1 muss ansonsten der gesamte Block neu gesetzt werden.
 
 Läuft der Sound bereits, führt erneutes Anklicken des Mescon-Schalter zum kompletten Neustart des Tones.
 
