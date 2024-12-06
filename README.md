@@ -3,7 +3,7 @@
 
 Der Mod »Mesecons Audio« ermöglicht es, Audiodateien in Minetest/Luanti einzubinden und mit mesecons zu starten. Abhängigkeit: default, mesecons.
 
-With this mod you can use audio files in Minetest/Luanti and start them with mesecons. You need the mesecons_audio privileg for setting (but not for playing). Depends: default, mesecons.
+With this mod you can use audio files in Minetest/Luanti and start them with mesecons. You need the mesecons_audio privileg for settings (but not for playing). Depends: default, mesecons.
 ## [download](https://github.com/mmmsued/mesecons_audio)
 
 <img src="screenshot.png">
